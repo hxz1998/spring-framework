@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ import org.springframework.util.PathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 import org.springframework.web.HttpRequestHandler;
-import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.web.cors.CorsConfiguration;
@@ -122,8 +121,6 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 	private @Nullable ResourceHttpMessageConverter resourceHttpMessageConverter;
 
 	private @Nullable ResourceRegionHttpMessageConverter resourceRegionHttpMessageConverter;
-
-	private @Nullable ContentNegotiationManager contentNegotiationManager;
 
 	private final Map<String, MediaType> mediaTypes = new HashMap<>(4);
 
@@ -527,7 +524,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 		Resource resource = getResource(request);
 		if (resource == null) {
 			logger.debug("Resource not found");
-			throw new NoResourceFoundException(HttpMethod.valueOf(request.getMethod()), getPath(request));
+			throw new NoResourceFoundException(HttpMethod.valueOf(request.getMethod()), request.getRequestURI(), getPath(request));
 		}
 
 		if (HttpMethod.OPTIONS.matches(request.getMethod())) {
@@ -576,6 +573,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 						HttpRange.toResourceRegions(httpRanges, resource), mediaType, outputMessage);
 			}
 			catch (IllegalArgumentException ex) {
+				response.setContentType(null);
 				response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes */" + resource.contentLength());
 				response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
 			}

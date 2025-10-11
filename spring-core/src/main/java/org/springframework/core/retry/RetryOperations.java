@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@ import org.jspecify.annotations.Nullable;
  * <p>Implemented by {@link RetryTemplate}. Not often used directly, but a useful
  * option to enhance testability, as it can easily be mocked or stubbed.
  *
+ * <p>Inspired by the <a href="https://github.com/spring-projects/spring-retry">Spring Retry</a>
+ * project but redesigned as a minimal core retry feature in the Spring Framework.
+ *
  * @author Mahmoud Ben Hassine
  * @since 7.0
  * @see RetryTemplate
@@ -31,15 +34,17 @@ import org.jspecify.annotations.Nullable;
 public interface RetryOperations {
 
 	/**
-	 * Execute the given {@link Retryable} (according to the {@link RetryPolicy}
-	 * configured at the implementation level) until it succeeds, or eventually
-	 * throw an exception if the {@code RetryPolicy} is exhausted.
+	 * Execute the given {@link Retryable} operation according to the {@link RetryPolicy}
+	 * configured at the implementation level.
+	 * <p>If the {@code Retryable} succeeds, its result will be returned. Otherwise, a
+	 * {@link RetryException} will be thrown to the caller. The {@code RetryException}
+	 * will contain the last exception thrown by the {@code Retryable} operation as the
+	 * {@linkplain RetryException#getCause() cause} and any exceptions from previous
+	 * attempts as {@linkplain RetryException#getSuppressed() suppressed exceptions}.
 	 * @param retryable the {@code Retryable} to execute and retry if needed
 	 * @param <R> the type of the result
 	 * @return the result of the {@code Retryable}, if any
-	 * @throws RetryException if the {@code RetryPolicy} is exhausted; exceptions
-	 * encountered during retry attempts should be made available as suppressed
-	 * exceptions
+	 * @throws RetryException if the {@code RetryPolicy} is exhausted
 	 */
 	<R extends @Nullable Object> R execute(Retryable<R> retryable) throws RetryException;
 

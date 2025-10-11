@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -342,7 +342,7 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 	 * @param values one or more header values
 	 */
 	public B header(String name, Object... values) {
-		addToMultiValueMap(this.headers, name, values);
+		this.headers.addAll(name, Arrays.asList(values));
 		return self();
 	}
 
@@ -372,7 +372,7 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 	 * @param values one or more values
 	 */
 	public B param(String name, String... values) {
-		addToMultiValueMap(this.parameters, name, values);
+		this.parameters.addAll(name, Arrays.asList(values));
 		return self();
 	}
 
@@ -819,13 +819,9 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 		if (query != null) {
 			request.setQueryString(query);
 		}
-		addRequestParams(request, UriComponentsBuilder.fromUri(uri).build().getQueryParams());
 
-		this.parameters.forEach((name, values) -> {
-			for (String value : values) {
-				request.addParameter(name, value);
-			}
-		});
+		addRequestParams(request, UriComponentsBuilder.fromUri(uri).build().getQueryParams());
+		this.parameters.forEach((name, values) -> request.addParameter(name, values.toArray(new String[0])));
 
 		if (!this.formFields.isEmpty()) {
 			if (this.content != null && this.content.length > 0) {
@@ -902,23 +898,23 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 		request.setContextPath(this.contextPath);
 		request.setServletPath(this.servletPath);
 
-		if ("".equals(this.pathInfo)) {
-			if (!requestUri.startsWith(this.contextPath + this.servletPath)) {
-				throw new IllegalArgumentException(
-						"Invalid servlet path [" + this.servletPath + "] for request URI [" + requestUri + "]");
-			}
-			String extraPath = requestUri.substring(this.contextPath.length() + this.servletPath.length());
-			this.pathInfo = (StringUtils.hasText(extraPath) ?
-					UrlPathHelper.defaultInstance.decodeRequestString(request, extraPath) : null);
+		String path = this.pathInfo;
+		if ("".equals(path)) {
+			Assert.isTrue(requestUri.startsWith(this.contextPath + this.servletPath),
+					() -> "Invalid servlet path [" + this.servletPath + "] for request URI [" + requestUri + "]");
+			String other = requestUri.substring(this.contextPath.length() + this.servletPath.length());
+			path = (StringUtils.hasText(other) ? UrlPathHelper.defaultInstance.decodeRequestString(request, other) : null);
 		}
-		request.setPathInfo(this.pathInfo);
+		request.setPathInfo(path);
 	}
 
 	private void addRequestParams(MockHttpServletRequest request, MultiValueMap<String, String> map) {
-		map.forEach((key, values) -> values.forEach(value -> {
-			value = (value != null ? UriUtils.decode(value, StandardCharsets.UTF_8) : null);
-			request.addParameter(UriUtils.decode(key, StandardCharsets.UTF_8), value);
-		}));
+		map.forEach((key, values) ->
+				request.addParameter(
+						UriUtils.decode(key, StandardCharsets.UTF_8),
+						values.stream()
+								.map(value -> value != null ? UriUtils.decode(value, StandardCharsets.UTF_8) : null)
+								.toArray(String[]::new)));
 	}
 
 	private byte[] writeFormData(MediaType mediaType, Charset charset) {
@@ -992,19 +988,10 @@ public abstract class AbstractMockHttpServletRequestBuilder<B extends AbstractMo
 		return request;
 	}
 
-
 	private static void addToMap(Map<String, Object> map, String name, Object value) {
 		Assert.hasLength(name, "'name' must not be empty");
 		Assert.notNull(value, "'value' must not be null");
 		map.put(name, value);
-	}
-
-	private static <T> void addToMultiValueMap(MultiValueMap<String, T> map, String name, T[] values) {
-		Assert.hasLength(name, "'name' must not be empty");
-		Assert.notEmpty(values, "'values' must not be empty");
-		for (T value : values) {
-			map.add(name, value);
-		}
 	}
 
 }

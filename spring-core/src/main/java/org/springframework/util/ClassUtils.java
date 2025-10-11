@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1466,10 +1466,8 @@ public abstract class ClassUtils {
 	}
 
 	/**
-	 * Get the first publicly accessible method in the supplied method's type hierarchy that
-	 * has a method signature equivalent to the supplied method, if possible.
-	 * <p>If the supplied method is {@code public} and declared in a {@code public} type,
-	 * the supplied method will be returned.
+	 * Get the closest publicly accessible (and exported) method in the supplied method's type
+	 * hierarchy that has a method signature equivalent to the supplied method, if possible.
 	 * <p>Otherwise, this method recursively searches the class hierarchy and implemented
 	 * interfaces for an equivalent method that is {@code public} and declared in a
 	 * {@code public} type.
@@ -1493,16 +1491,23 @@ public abstract class ClassUtils {
 	 */
 	public static Method getPubliclyAccessibleMethodIfPossible(Method method, @Nullable Class<?> targetClass) {
 		Class<?> declaringClass = method.getDeclaringClass();
-		// If the method is not public, we can abort the search immediately; or if the method's
-		// declaring class is public, the method is already publicly accessible.
-		if (!Modifier.isPublic(method.getModifiers()) || Modifier.isPublic(declaringClass.getModifiers())) {
+		// If the method is not public or its declaring class is public and exported already,
+		// we can abort the search immediately (avoiding reflection as well as cache access).
+		if (!Modifier.isPublic(method.getModifiers()) || (Modifier.isPublic(declaringClass.getModifiers()) &&
+				declaringClass.getModule().isExported(declaringClass.getPackageName(), ClassUtils.class.getModule()))) {
 			return method;
 		}
 
 		Method interfaceMethod = getInterfaceMethodIfPossible(method, targetClass, true);
 		// If we found a method in a public interface, return the interface method.
-		if (!interfaceMethod.equals(method)) {
+		if (interfaceMethod != method && interfaceMethod.getDeclaringClass().getModule().isExported(
+				interfaceMethod.getDeclaringClass().getPackageName(), ClassUtils.class.getModule())) {
 			return interfaceMethod;
+		}
+
+		// Bypass cache for java.lang.Object unless it is actually an overridable method declared there.
+		if (declaringClass.getSuperclass() == Object.class && !ReflectionUtils.isObjectMethod(method)) {
+			return method;
 		}
 
 		Method result = publiclyAccessibleMethodCache.computeIfAbsent(method,
@@ -1515,15 +1520,16 @@ public abstract class ClassUtils {
 
 		Class<?> current = declaringClass.getSuperclass();
 		while (current != null) {
-			if (Modifier.isPublic(current.getModifiers())) {
-				try {
-					return current.getDeclaredMethod(methodName, parameterTypes);
-				}
-				catch (NoSuchMethodException ex) {
-					// ignore
-				}
+			Method method = getMethodOrNull(current, methodName, parameterTypes);
+			if (method == null) {
+				break;
 			}
-			current = current.getSuperclass();
+			if (Modifier.isPublic(method.getDeclaringClass().getModifiers()) &&
+					method.getDeclaringClass().getModule().isExported(
+							method.getDeclaringClass().getPackageName(), ClassUtils.class.getModule())) {
+				return method;
+			}
+			current = method.getDeclaringClass().getSuperclass();
 		}
 		return null;
 	}

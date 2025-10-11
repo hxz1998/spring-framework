@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,11 +84,13 @@ import org.springframework.test.context.bean.override.BeanOverride;
  * See the Javadoc for {@link org.springframework.test.context.ContextHierarchy @ContextHierarchy}
  * for further details and examples.
  *
- * <p><strong>NOTE</strong>: Only <em>singleton</em> beans can be mocked.
- * Any attempt to mock a non-singleton bean will result in an exception. When
- * mocking a bean created by a {@link org.springframework.beans.factory.FactoryBean
- * FactoryBean}, the {@code FactoryBean} will be replaced with a singleton mock
- * of the type of object created by the {@code FactoryBean}.
+ * <p><strong>NOTE</strong>: When mocking a non-singleton bean, the non-singleton
+ * bean will be replaced with a singleton mock, and the corresponding bean definition
+ * will be converted to a singleton. Consequently, if you mock a prototype or scoped
+ * bean, the mock will be treated as a singleton. Similarly, when mocking a bean
+ * created by a {@link org.springframework.beans.factory.FactoryBean FactoryBean},
+ * the {@code FactoryBean} will be replaced with a singleton mock of the type of
+ * object created by the {@code FactoryBean}.
  *
  * <p>There are no restrictions on the visibility of a {@code @MockitoBean} field.
  * Such fields can therefore be {@code public}, {@code protected}, package-private

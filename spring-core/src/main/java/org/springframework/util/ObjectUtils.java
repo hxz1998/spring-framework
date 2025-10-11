@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -255,7 +255,7 @@ public abstract class ObjectUtils {
 	 * @param obj the object to append
 	 * @return the new array (of the same component type; never {@code null})
 	 */
-	public static <A, O extends A> A[] addObjectToArray(A @Nullable [] array, @Nullable O obj) {
+	public static <A, O extends A> A[] addObjectToArray(A @Nullable [] array, O obj) {
 		return addObjectToArray(array, obj, (array != null ? array.length : 0));
 	}
 
@@ -268,17 +268,18 @@ public abstract class ObjectUtils {
 	 * @return the new array (of the same component type; never {@code null})
 	 * @since 6.0
 	 */
-	public static <A, O extends A> @Nullable A[] addObjectToArray(A @Nullable [] array, @Nullable O obj, int position) {
+	public static <A, O extends A> A[] addObjectToArray(A @Nullable [] array, O obj, int position) {
 		Class<?> componentType = Object.class;
 		if (array != null) {
 			componentType = array.getClass().componentType();
 		}
+		// Defensive code for use cases not following the declared nullability
 		else if (obj != null) {
 			componentType = obj.getClass();
 		}
 		int newArrayLength = (array != null ? array.length + 1 : 1);
 		@SuppressWarnings("unchecked")
-		@Nullable A[] newArray = (A[]) Array.newInstance(componentType, newArrayLength);
+		A[] newArray = (A[]) Array.newInstance(componentType, newArrayLength);
 		if (array != null) {
 			System.arraycopy(array, 0, newArray, 0, position);
 			System.arraycopy(array, position, newArray, position + 1, array.length - position);

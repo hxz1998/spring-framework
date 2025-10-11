@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import kotlin.reflect.jvm.ReflectJvmMapping;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractKotlinSerializationHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -61,6 +62,9 @@ public class KotlinResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
 		KFunction<?> function = ReflectJvmMapping.getKotlinFunction(Objects.requireNonNull(returnType.getMethod()));
 		KType type = Objects.requireNonNull(function).getReturnType();
+		if (HttpEntity.class.isAssignableFrom(returnType.getParameterType())) {
+			return Collections.singletonMap(KType.class.getName(), Objects.requireNonNull(type.getArguments().get(0).getType()));
+		}
 		return Collections.singletonMap(KType.class.getName(), type);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2025 the original author or authors.
+ * Copyright 2002-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.net.URLConnection;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -706,6 +707,17 @@ class ClassUtilsTests {
 			// Should not find the interface method in List.
 			assertThat(publiclyAccessibleMethod.getDeclaringClass()).isEqualTo(originalType);
 			assertThat(publiclyAccessibleMethod).isSameAs(originalMethod);
+			assertPubliclyAccessible(publiclyAccessibleMethod);
+		}
+
+		@Test
+		void publicMethodInNonExportedClass() throws Exception {
+			Class<?> originalType = getClass().getClassLoader().loadClass("sun.net.www.protocol.http.HttpURLConnection");
+			Method originalMethod = originalType.getDeclaredMethod("getOutputStream");
+
+			Method publiclyAccessibleMethod = ClassUtils.getPubliclyAccessibleMethodIfPossible(originalMethod, null);
+			assertThat(publiclyAccessibleMethod.getDeclaringClass()).isEqualTo(URLConnection.class);
+			assertThat(publiclyAccessibleMethod.getName()).isSameAs(originalMethod.getName());
 			assertPubliclyAccessible(publiclyAccessibleMethod);
 		}
 
