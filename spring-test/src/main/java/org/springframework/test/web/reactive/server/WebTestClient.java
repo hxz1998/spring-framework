@@ -447,10 +447,13 @@ public interface WebTestClient {
 		 * Configure an {@link ApiVersionInserter} to abstract how an API version
 		 * specified via {@link RequestHeadersSpec#apiVersion(Object)}
 		 * is inserted into the request.
+		 * <p>{@code ApiVersionInserter} exposes shortcut methods for several
+		 * built-in inserter implementation types. See the class-level Javadoc
+		 * of {@link ApiVersionInserter} for a list of choices.
 		 * @param apiVersionInserter the inserter to use
 		 * @since 7.0
 		 */
-		Builder apiVersionInserter(ApiVersionInserter apiVersionInserter);
+		Builder apiVersionInserter(@Nullable ApiVersionInserter apiVersionInserter);
 
 		/**
 		 * Add the given filter to the filter chain.
@@ -697,10 +700,21 @@ public interface WebTestClient {
 		S attributes(Consumer<Map<String, Object>> attributesConsumer);
 
 		/**
-		 * Perform the exchange without a request body.
-		 * @return a spec for decoding the response
+		 * Perform the exchange.
+		 * @return a spec for expectations on the response
 		 */
 		ResponseSpec exchange();
+
+		/**
+		 * Variant of {@link #exchange()} that expects a successful response.
+		 * Effectively, a shortcut for:
+		 * <pre class="code">
+		 * exchange().expectStatus().is2xxSuccessful()
+		 * </pre>
+		 * @return a spec for expectations on the response
+		 * @since 7.0
+		 */
+		ResponseSpec exchangeSuccessfully();
 	}
 
 

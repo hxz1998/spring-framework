@@ -248,7 +248,7 @@ class DefaultRestTestClient implements RestTestClient {
 		}
 
 		@Override
-		public RequestBodySpec apiVersion(Object version) {
+		public RequestBodySpec apiVersion(@Nullable Object version) {
 			this.requestHeadersUriSpec.apiVersion(version);
 			return this;
 		}
@@ -268,6 +268,11 @@ class DefaultRestTestClient implements RestTestClient {
 								return new ExchangeResult(request, response, this.uriTemplate, requestBody);
 							}, false),
 					DefaultRestTestClient.this.entityResultConsumer);
+		}
+
+		@Override
+		public ResponseSpec exchangeSuccessfully() {
+			return exchange().expectStatus().is2xxSuccessful();
 		}
 	}
 

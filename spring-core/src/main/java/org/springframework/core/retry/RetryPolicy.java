@@ -80,8 +80,8 @@ public interface RetryPolicy {
 
 	/**
 	 * Create a {@link RetryPolicy} configured with a maximum number of retry attempts.
-	 * <p>The returned policy uses a fixed backoff of {@value Builder#DEFAULT_DELAY}
-	 * milliseconds.
+	 * <p>The returned policy applies to all exception types and uses a fixed backoff
+	 * of {@value Builder#DEFAULT_DELAY} milliseconds.
 	 * @param maxAttempts the maximum number of retry attempts;
 	 * must be positive (or zero for no retry)
 	 * @see Builder#maxAttempts(long)
@@ -296,6 +296,9 @@ public interface RetryPolicy {
 		 * Specify the types of exceptions for which the {@link RetryPolicy}
 		 * should retry a failed operation.
 		 * <p>Defaults to all exception types.
+		 * <p>The supplied exception types will be matched against an exception
+		 * thrown by a failed operation as well as nested
+		 * {@linkplain Throwable#getCause() causes}.
 		 * <p>If included exception types have already been configured, the supplied
 		 * types will be added to the existing list of included types.
 		 * <p>This can be combined with other {@code includes}, {@code excludes},
@@ -318,6 +321,9 @@ public interface RetryPolicy {
 		 * Specify the types of exceptions for which the {@link RetryPolicy}
 		 * should retry a failed operation.
 		 * <p>Defaults to all exception types.
+		 * <p>The supplied exception types will be matched against an exception
+		 * thrown by a failed operation as well as nested
+		 * {@linkplain Throwable#getCause() causes}.
 		 * <p>If included exception types have already been configured, the supplied
 		 * types will be added to the existing list of included types.
 		 * <p>This can be combined with other {@code includes}, {@code excludes},
@@ -337,6 +343,9 @@ public interface RetryPolicy {
 		/**
 		 * Specify the types of exceptions for which the {@link RetryPolicy}
 		 * should not retry a failed operation.
+		 * <p>The supplied exception types will be matched against an exception
+		 * thrown by a failed operation as well as nested
+		 * {@linkplain Throwable#getCause() causes}.
 		 * <p>If excluded exception types have already been configured, the supplied
 		 * types will be added to the existing list of excluded types.
 		 * <p>This can be combined with {@code includes}, other {@code excludes},
@@ -358,6 +367,9 @@ public interface RetryPolicy {
 		/**
 		 * Specify the types of exceptions for which the {@link RetryPolicy}
 		 * should not retry a failed operation.
+		 * <p>The supplied exception types will be matched against an exception
+		 * thrown by a failed operation as well as nested
+		 * {@linkplain Throwable#getCause() causes}.
 		 * <p>If excluded exception types have already been configured, the supplied
 		 * types will be added to the existing list of excluded types.
 		 * <p>This can be combined with {@code includes}, other {@code excludes},

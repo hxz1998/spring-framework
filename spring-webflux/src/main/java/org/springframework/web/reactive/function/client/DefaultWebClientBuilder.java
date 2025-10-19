@@ -64,7 +64,9 @@ final class DefaultWebClientBuilder implements WebClient.Builder {
 	static {
 		ClassLoader loader = DefaultWebClientBuilder.class.getClassLoader();
 		REACTOR_NETTY_CLIENT_PRESENT = ClassUtils.isPresent("reactor.netty.http.client.HttpClient", loader);
-		JETTY_CLIENT_PRESENT = ClassUtils.isPresent("org.eclipse.jetty.client.HttpClient", loader);
+		JETTY_CLIENT_PRESENT =
+				ClassUtils.isPresent("org.eclipse.jetty.client.HttpClient", loader) &&
+						ClassUtils.isPresent("org.eclipse.jetty.reactive.client.ReactiveRequest", loader);
 		HTTP_COMPONENTS_CLIENT_PRESENT =
 				ClassUtils.isPresent("org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient", loader) &&
 						ClassUtils.isPresent("org.apache.hc.core5.reactive.ReactiveDataConsumer", loader);
@@ -205,7 +207,7 @@ final class DefaultWebClientBuilder implements WebClient.Builder {
 	}
 
 	@Override
-	public WebClient.Builder apiVersionInserter(ApiVersionInserter apiVersionInserter) {
+	public WebClient.Builder apiVersionInserter(@Nullable ApiVersionInserter apiVersionInserter) {
 		this.apiVersionInserter = apiVersionInserter;
 		return this;
 	}
