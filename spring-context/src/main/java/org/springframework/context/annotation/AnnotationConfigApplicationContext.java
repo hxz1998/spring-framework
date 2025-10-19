@@ -16,11 +16,7 @@
 
 package org.springframework.context.annotation;
 
-import java.util.Arrays;
-import java.util.function.Supplier;
-
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -28,6 +24,9 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.metrics.StartupStep;
 import org.springframework.util.Assert;
+
+import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * Standalone application context, accepting <em>component classes</em> as input &mdash;
@@ -179,6 +178,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	@Override
 	public void scan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
+		// try (StartupStep scanPackages = getApplicationStartup().start("spring.context.scan-packages")
+		// 		.tag("packages", () -> Arrays.toString(basePackages))) {
+		// 	this.scanner.scan(basePackages);
+		// }
 		StartupStep scanPackages = getApplicationStartup().start("spring.context.base-packages.scan")
 				.tag("packages", () -> Arrays.toString(basePackages));
 		this.scanner.scan(basePackages);

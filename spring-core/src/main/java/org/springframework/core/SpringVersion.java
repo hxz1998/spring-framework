@@ -17,6 +17,8 @@
 package org.springframework.core;
 
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class that exposes the Spring version. Fetches the
@@ -47,4 +49,7 @@ public final class SpringVersion {
 		return (pkg != null ? pkg.getImplementationVersion() : null);
 	}
 
+	public static void main(String[] args) {
+		System.out.println(SpringVersion.getVersion());
+	}
 }

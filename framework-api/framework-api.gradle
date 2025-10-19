@@ -28,6 +28,8 @@ javadoc {
 	title = "${rootProject.description} ${version} API"
 	failOnError = true
 	options {
+        docEncoding = 'UTF-8'
+        charSet = 'UTF-8'
 		encoding = "UTF-8"
 		memberLevel = JavadocMemberLevel.PROTECTED
 		author = true

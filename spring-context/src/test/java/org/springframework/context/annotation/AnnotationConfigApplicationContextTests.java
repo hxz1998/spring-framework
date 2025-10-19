@@ -16,13 +16,8 @@
 
 package org.springframework.context.annotation;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Pattern;
-
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.TypeReference;
@@ -35,11 +30,16 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation6.ComponentForScanning;
 import org.springframework.context.annotation6.ConfigForScanning;
+import org.springframework.context.annotation6.ConfigForScanning2;
 import org.springframework.context.annotation6.Jsr330NamedForScanning;
 import org.springframework.context.testfixture.context.annotation.CglibConfiguration;
 import org.springframework.context.testfixture.context.annotation.LambdaBeanConfiguration;
 import org.springframework.core.ResolvableType;
 import org.springframework.util.ObjectUtils;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,7 +64,7 @@ class AnnotationConfigApplicationContextTests {
 		context.getBean(uncapitalize(ComponentForScanning.class.getSimpleName()));
 		context.getBean(uncapitalize(Jsr330NamedForScanning.class.getSimpleName()));
 		Map<String, Object> beans = context.getBeansWithAnnotation(Configuration.class);
-		assertThat(beans).hasSize(1);
+		assertThat(beans).hasSize(2);
 	}
 
 	@Test
@@ -76,10 +76,14 @@ class AnnotationConfigApplicationContextTests {
 
 		context.getBean(ConfigForScanning.class.getName());
 		context.getBean(ConfigForScanning.class.getName() + ".testBean"); // contributed by ConfigForScanning
+		// 这里获取到的就是工厂里面创建出来的TestBean
+		org.springframework.beans.testfixture.beans.TestBean testBean2 =
+				(org.springframework.beans.testfixture.beans.TestBean) context.getBean(ConfigForScanning2.class.getName() + ".testBean");
 		context.getBean(ComponentForScanning.class.getName());
+
 		context.getBean(Jsr330NamedForScanning.class.getName());
 		Map<String, Object> beans = context.getBeansWithAnnotation(Configuration.class);
-		assertThat(beans).hasSize(1);
+		assertThat(beans).hasSize(2);
 	}
 
 	@Test
@@ -195,6 +199,7 @@ class AnnotationConfigApplicationContextTests {
 				}
 				return bean;
 			}
+
 			@Override
 			public Object postProcessAfterInitialization(Object bean, String beanName) {
 				if (bean instanceof TestBean testBean) {
@@ -209,6 +214,7 @@ class AnnotationConfigApplicationContextTests {
 			public Object postProcessBeforeInitialization(Object bean, String beanName) {
 				return (bean instanceof TestBean ? null : bean);
 			}
+
 			@Override
 			public Object postProcessAfterInitialization(Object bean, String beanName) {
 				return (bean instanceof TestBean ? null : bean);
@@ -221,6 +227,7 @@ class AnnotationConfigApplicationContextTests {
 				assertThat(bean).isNotInstanceOf(TestBean.class);
 				return bean;
 			}
+
 			@Override
 			public Object postProcessAfterInitialization(Object bean, String beanName) {
 				assertThat(bean).isNotInstanceOf(TestBean.class);
@@ -272,9 +279,9 @@ class AnnotationConfigApplicationContextTests {
 		assertThat(context.getBean(BeanB.class).applicationContext).isSameAs(context);
 
 		assertThat(context.getDefaultListableBeanFactory().getDependentBeans("annotationConfigApplicationContextTests.BeanB"))
-			.containsExactly("annotationConfigApplicationContextTests.BeanA");
+				.containsExactly("annotationConfigApplicationContextTests.BeanA");
 		assertThat(context.getDefaultListableBeanFactory().getDependentBeans("annotationConfigApplicationContextTests.BeanC"))
-			.containsExactly("annotationConfigApplicationContextTests.BeanA");
+				.containsExactly("annotationConfigApplicationContextTests.BeanA");
 	}
 
 	@Test
@@ -615,11 +622,13 @@ class AnnotationConfigApplicationContextTests {
 	@Configuration
 	static class TwoTestBeanConfig {
 
-		@Bean TestBean tb1() {
+		@Bean
+		TestBean tb1() {
 			return new TestBean();
 		}
 
-		@Bean TestBean tb2() {
+		@Bean
+		TestBean tb2() {
 			return new TestBean();
 		}
 	}
@@ -627,18 +636,26 @@ class AnnotationConfigApplicationContextTests {
 	@Configuration
 	static class NameConfig {
 
-		@Bean String name() { return "foo"; }
+		@Bean
+		String name() {
+			return "foo";
+		}
 
-		@Bean(autowireCandidate = false) String prefixName() { return "bar" + name(); }
+		@Bean(autowireCandidate = false)
+		String prefixName() {
+			return "bar" + name();
+		}
 	}
 
 	@Configuration
 	@Import(NameConfig.class)
 	static class AutowiredConfig {
 
-		@Autowired String autowiredName;
+		@Autowired
+		String autowiredName;
 
-		@Bean TestBean testBean() {
+		@Bean
+		TestBean testBean() {
 			TestBean testBean = new TestBean();
 			testBean.name = autowiredName;
 			return testBean;
@@ -659,13 +676,15 @@ class AnnotationConfigApplicationContextTests {
 
 	static class BeanB {
 
-		@Autowired ApplicationContext applicationContext;
+		@Autowired
+		ApplicationContext applicationContext;
 
 		public BeanB() {
 		}
 	}
 
-	static class BeanC {}
+	static class BeanC {
+	}
 
 	static class BeanD {
 
@@ -735,7 +754,8 @@ class AnnotationConfigApplicationContextTests {
 		}
 	}
 
-	static class GenericHolder<T> {}
+	static class GenericHolder<T> {
+	}
 
 	static class GenericHolderFactoryBean implements FactoryBean<GenericHolder<?>> {
 
