@@ -29,7 +29,7 @@ public interface BeanMetadataElement {
 
 	/**
 	 * Return the configuration source {@code Object} for this metadata element
-	 * (may be {@code null}).
+	 * (maybe {@code null}).
 	 */
 	default @Nullable Object getSource() {
 		return null;
