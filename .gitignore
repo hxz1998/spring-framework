@@ -24,6 +24,7 @@ buildSrc/build
 /framework-*/build
 /integration-tests/build
 /src/asciidoc/build
+/playground/build
 spring-test/test-output/
 
 # Maven artifacts

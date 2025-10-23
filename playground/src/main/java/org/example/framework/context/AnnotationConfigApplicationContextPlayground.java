@@ -28,7 +28,7 @@ public class AnnotationConfigApplicationContextPlayground {
 //		context.setAllowBeanDefinitionOverriding(true);
 //		context.setAllowBeanDefinitionOverriding(false);
 		context.register(HelloComponent.class);
-		context.register(HelloComponent.class);
+//		context.register(HelloComponent.class);
 		context.refresh();
 		HelloComponent component = context.getBean(HelloComponent.class);
 		component.sayHello();
