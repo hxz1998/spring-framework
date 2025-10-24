@@ -546,20 +546,39 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
+			/*
+			设置服务状态（active=true），准备环境信息、验证环境变量参数。
+			 */
 			// Prepare this context for refreshing.
 			prepareRefresh();
 
+			/*
+			刷新并获取beanFactory，在这里有两套实现逻辑，默认的是GenericApplicationContext，不支持两次刷新
+			还有一类是支持刷新的AbstractRefreshableApplicationContext，这样就能多次加载Bean了。
+			不管是默认的选项，还是可刷新的选项，这里使用到的都是DefaultListableBeanFactory
+			所以下文中提到的beanFactory，其实都是DefaultListableBeanFactory。
+			 */
 			// Tell the subclass to refresh the internal bean factory.
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
+			/*
+			配置DefaultListableBeanFactory内部参数细节
+			包括：类加载器、表达式解析器、资源加载器、BeanPostProcessor处理器、
+			后置处理器自动扫描器
+			一些单例变量
+			 */
 			// Prepare the bean factory for use in this context.
 			prepareBeanFactory(beanFactory);
 
 			try {
+				/*
+				这段只会在Web/Refreshable Context中生效，其他的都是空的
+				 */
 				// Allows post-processing of the bean factory in context subclasses.
 				postProcessBeanFactory(beanFactory);
 
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
+
 				// Invoke factory processors registered as beans in the context.
 				invokeBeanFactoryPostProcessors(beanFactory);
 				// Register bean processors that intercept bean creation.
