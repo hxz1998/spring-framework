@@ -1,0 +1,16 @@
+plugins {
+    id 'org.springframework.build.runtimehints-agent'
+}
+
+description = "Spring Context"
+
+apply plugin: "kotlin"
+
+dependencies {
+	api(project(":spring-context"))
+    api(project(":spring-beans"))
+    api(project(":spring-core"))
+	testImplementation(platform("org.junit:junit-bom:5.10.0"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}

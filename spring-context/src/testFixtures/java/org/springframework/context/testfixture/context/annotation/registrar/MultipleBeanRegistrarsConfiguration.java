@@ -14,25 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.beans;
+package org.springframework.context.testfixture.context.annotation.registrar;
 
-import org.jspecify.annotations.Nullable;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.testfixture.beans.factory.BarRegistrar;
+import org.springframework.context.testfixture.beans.factory.FooRegistrar;
 
-/**
- * Interface to be implemented by bean metadata elements
- * that carry a configuration source object.
- *
- * @author Juergen Hoeller
- * @since 2.0
- */
-public interface BeanMetadataElement {
-
-	/**
-	 * Return the configuration source {@code Object} for this metadata element
-	 * (maybe {@code null}).
-	 */
-	default @Nullable Object getSource() {
-		return null;
-	}
-
+@Import({FooRegistrar.class, BarRegistrar.class})
+public class MultipleBeanRegistrarsConfiguration {
 }

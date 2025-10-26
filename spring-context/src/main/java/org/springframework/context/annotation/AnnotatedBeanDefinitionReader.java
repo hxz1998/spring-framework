@@ -251,11 +251,13 @@ public class AnnotatedBeanDefinitionReader {
 			Class<? extends Annotation> @Nullable [] qualifiers, @Nullable Supplier<T> supplier,
 			BeanDefinitionCustomizer @Nullable [] customizers) {
 
+		// 在普通的AnnotatedContext中，肯定要用AnnotatedGenericBeanDefinition
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
+		abd.setAttribute("hello", "world");
 		abd.setAttribute(ConfigurationClassUtils.CANDIDATE_ATTRIBUTE, Boolean.TRUE);
 		abd.setInstanceSupplier(supplier);
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
