@@ -16,19 +16,9 @@
 
 package org.springframework.context.annotation;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.Lookup;
@@ -55,13 +45,14 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.TypeFilter;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Indexed;
-import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.*;
 
 /**
  * A component provider that scans for candidate components starting from a
@@ -220,8 +211,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			this.includeFilters.add(new AnnotationTypeFilter(
 					((Class<? extends Annotation>) ClassUtils.forName("jakarta.inject.Named", cl)), false));
 			logger.trace("JSR-330 'jakarta.inject.Named' annotation found and supported for component scanning");
-		}
-		catch (ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			// JSR-330 API (as included in Jakarta EE) not available - simply skip.
 		}
 	}
@@ -313,8 +303,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
 			if (this.componentsIndex.hasScannedPackage(basePackage)) {
 				return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
-			}
-			else {
+			} else {
 				this.componentsIndex.registerScan(basePackage);
 			}
 		}
@@ -368,8 +357,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				if (isStereotypeAnnotationForIndex(annotationType)) {
 					this.componentsIndex.registerCandidateType(className, annotationType.getName());
 				}
-			}
-			else if (filter instanceof AssignableTypeFilter assignableTypeFilter) {
+			} else if (filter instanceof AssignableTypeFilter assignableTypeFilter) {
 				Class<?> target = assignableTypeFilter.getTargetType();
 				if (AnnotationUtils.isAnnotationDeclaredLocally(Indexed.class, target)) {
 					this.componentsIndex.registerCandidateType(className, target.getName());
@@ -423,21 +411,18 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 							logger.debug("Using candidate component class from index: " + type);
 						}
 						candidates.add(sbd);
-					}
-					else {
+					} else {
 						if (debugEnabled) {
 							logger.debug("Ignored because not a concrete top-level class: " + type);
 						}
 					}
-				}
-				else {
+				} else {
 					if (traceEnabled) {
 						logger.trace("Ignored because matching an exclude filter: " + type);
 					}
 				}
 			}
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
 			throw new BeanDefinitionStoreException("I/O failure during classpath scanning", ex);
 		}
 		return candidates;
@@ -470,42 +455,35 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 								logger.debug("Identified candidate component class: " + resource);
 							}
 							candidates.add(sbd);
-						}
-						else {
+						} else {
 							if (debugEnabled) {
 								logger.debug("Ignored because not a concrete top-level class: " + resource);
 							}
 						}
-					}
-					else {
+					} else {
 						if (traceEnabled) {
 							logger.trace("Ignored because not matching any filter: " + resource);
 						}
 					}
-				}
-				catch (FileNotFoundException ex) {
+				} catch (FileNotFoundException ex) {
 					if (traceEnabled) {
 						logger.trace("Ignored non-readable " + resource + ": " + ex.getMessage());
 					}
-				}
-				catch (ClassFormatException ex) {
+				} catch (ClassFormatException ex) {
 					if (shouldIgnoreClassFormatException) {
 						if (debugEnabled) {
 							logger.debug("Ignored incompatible class format in " + resource + ": " + ex.getMessage());
 						}
-					}
-					else {
+					} else {
 						throw new BeanDefinitionStoreException("Incompatible class format in " + resource +
 								": set system property 'spring.classformat.ignore' to 'true' " +
 								"if you mean to ignore such files during classpath scanning", ex);
 					}
-				}
-				catch (Throwable ex) {
+				} catch (Throwable ex) {
 					throw new BeanDefinitionStoreException("Failed to read candidate component class: " + resource, ex);
 				}
 			}
-		}
-		catch (IOException ex) {
+		} catch (IOException ex) {
 			throw new BeanDefinitionStoreException("I/O failure during classpath scanning", ex);
 		}
 		return candidates;
@@ -569,6 +547,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return whether the bean definition qualifies as a candidate component
 	 */
 	protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+		/*
+		判断这个类是不是一个独立的顶级类。
+		它排除了内部类、匿名类、局部类等那些不能单独实例化的类型。
+		所以比如 Outer.InnerClass（非静态内部类）就不是“独立”的。
+
+		是独立类 && （是具体类 或者 是带 @Lookup 方法的抽象类）
+		 */
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
 		return (metadata.isIndependent() && (metadata.isConcrete() ||
 				(metadata.isAbstract() && metadata.hasAnnotatedMethods(Lookup.class.getName()))));

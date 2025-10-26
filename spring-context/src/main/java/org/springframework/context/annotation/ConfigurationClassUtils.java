@@ -143,6 +143,7 @@ public abstract class ConfigurationClassUtils {
 			}
 		}
 
+		// NOTE: 检查配置，
 		Map<String, @Nullable Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);

@@ -249,6 +249,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @return number of beans registered
 	 */
 	public int scan(String... basePackages) {
+		// 第一次访问的时候，这里返回的是四个默认的Bean（内置的Bean）
 		int beanCountAtScanStart = this.registry.getBeanDefinitionCount();
 
 		doScan(basePackages);
@@ -282,6 +283,10 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 					postProcessBeanDefinition(abstractBeanDefinition, beanName);
 				}
 				if (candidate instanceof AnnotatedBeanDefinition annotatedBeanDefinition) {
+					/*
+					当 Spring 扫描到某个类（或方法）并准备注册为 BeanDefinition 时，
+					它会调用这个方法，把诸如 @Lazy、@Primary、@DependsOn、@Role 等注解的配置写入到 BeanDefinition 对象中。
+					 */
 					AnnotationConfigUtils.processCommonDefinitionAnnotations(annotatedBeanDefinition);
 				}
 				if (checkCandidate(beanName, candidate)) {

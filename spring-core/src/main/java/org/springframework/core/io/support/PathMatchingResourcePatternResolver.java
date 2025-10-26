@@ -1050,6 +1050,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 			return result;
 		}
 
+		// 将文件目录统一为/分割，避免Windows、Unix系统之间的差异
 		String rootDir = StringUtils.cleanPath(rootPath.toString());
 		if (!rootDir.endsWith("/")) {
 			rootDir += "/";
