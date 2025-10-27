@@ -12,27 +12,17 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.Ordered;
-import org.springframework.core.PriorityOrdered;
-import org.springframework.stereotype.Component;
 
-@Component
-@Import(ImportedMyBeanFactoryPostProcessor.class)
-public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor, PriorityOrdered, BeanDefinitionRegistryPostProcessor {
+public class ImportedMyBeanFactoryPostProcessor implements BeanFactoryPostProcessor, BeanDefinitionRegistryPostProcessor {
 
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-		System.out.println("修改BeanDefinitionRegistry 外置处理器");
+		System.out.println("嵌套的处理 registry");
 	}
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		System.out.println("修改BeanDefinition属性 外置处理器");
-	}
-
-	@Override
-	public int getOrder() {
-		return Ordered.HIGHEST_PRECEDENCE;
+		System.out.println("嵌套的处理 beanFactory");
+		BeanDefinitionRegistryPostProcessor.super.postProcessBeanFactory(beanFactory);
 	}
 }

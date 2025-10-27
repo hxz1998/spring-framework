@@ -584,6 +584,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				注册能够处理并修改BeanDefinition信息的处理器（扫描定义BeanDefinition的扩展点）
 				然后立即执行
 				这里面注册的钩子，只有在Context初始化（refresh）时执行一次
+
+				在执行时，会按照：PriorityOrdered -> Ordered -> 普通的RegistryPostProcessor -> 普通的BeanFactoryPostProcessor
+				这样的顺序完成执行
 				 */
 				// Invoke factory processors registered as beans in the context.
 				invokeBeanFactoryPostProcessors(beanFactory);
@@ -596,9 +599,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
+				/*
+				让Spring的Context具有国际化消息解析的能力，如果没有自定义的配置，那么就使用默认的（什么都不做）
+				 */
 				// Initialize message source for this context.
 				initMessageSource();
 
+				/*
+				喇叭（广播）系统的初始化，将后续的事件监听器注册进来，有系统事件时确保接收
+				 */
 				// Initialize event multicaster for this context.
 				initApplicationEventMulticaster();
 
