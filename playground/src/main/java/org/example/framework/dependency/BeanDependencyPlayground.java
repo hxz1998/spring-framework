@@ -18,12 +18,15 @@ import java.util.Arrays;
  */
 public class BeanDependencyPlayground {
 	public static void main(String[] args) {
-		ConfigurableApplicationContext context = new AnnotationConfigApplicationContext("org.example.framework.dependency");
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("org.example.framework.dependency");
+		context.setAllowCircularReferences(false);
 		printBeanDefinitionNames(context);
-		BeanA beanA = (BeanA) context.getBean("beanA");
-		System.out.println(beanA.getBeanB());
-		System.out.println(context.getBean(BeanB.class));
-
+//		BeanA beanA = (BeanA) context.getBean("beanA");
+//		System.out.println(beanA.getBeanB());
+//		System.out.println(context.getBean(BeanB.class));
+//
+//		System.out.println(context.getBean(BeanE.class));
+//		System.out.println(context.getBean(BeanF.class));
 
 	}
 

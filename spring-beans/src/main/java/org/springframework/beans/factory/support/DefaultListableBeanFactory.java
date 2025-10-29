@@ -1182,6 +1182,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		if (!mbd.isLazyInit()) {
 			try {
+				// 正常默认是走这个路径，不走后台初始化模式
 				instantiateSingleton(beanName);
 			}
 			catch (BeanCurrentlyInCreationException ex) {
@@ -1209,6 +1210,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	private void instantiateSingleton(String beanName) {
+		// 判断一个Bean是普通Bean还是创建Bean的BeanFactory工厂
 		if (isFactoryBean(beanName)) {
 			Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 			if (bean instanceof SmartFactoryBean<?> smartFactoryBean && smartFactoryBean.isEagerInit()) {
@@ -1216,6 +1218,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 		else {
+			// 这里回到AbstractBeanFactory中，调用父类实现逻辑
 			getBean(beanName);
 		}
 	}

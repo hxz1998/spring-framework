@@ -9,7 +9,7 @@ package org.example.framework.dependency;
 
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 class BeanA {
 	private final BeanB beanB;
 
