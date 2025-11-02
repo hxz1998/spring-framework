@@ -18,6 +18,7 @@ package org.springframework.test.context.junit.jupiter.nested;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.TestInstantiationAwareExtension.ExtensionContextScope;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringExtensionConfig;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,17 +38,19 @@ import static org.springframework.test.context.TestConstructor.AutowireMode.ANNO
 /**
  * Integration tests that verify support for {@code @Nested} test classes using
  * {@link TestConstructor @TestConstructor} in conjunction with the
- * {@link SpringExtension} in a JUnit Jupiter environment.
+ * {@link SpringExtension} in a JUnit Jupiter environment with test class
+ * {@link ExtensionContextScope}.
  *
  * @author Sam Brannen
  * @since 5.3
  */
 @SpringJUnitConfig
+@SpringExtensionConfig(useTestClassScopedExtensionContext = true)
 @TestConstructor(autowireMode = ALL)
 @NestedTestConfiguration(OVERRIDE) // since INHERIT is now the global default
-class TestConstructorNestedTests {
+class TestConstructorTestClassScopedExtensionContextNestedTests {
 
-	TestConstructorNestedTests(String text) {
+	TestConstructorTestClassScopedExtensionContextNestedTests(String text) {
 		assertThat(text).isEqualTo("enigma");
 	}
 

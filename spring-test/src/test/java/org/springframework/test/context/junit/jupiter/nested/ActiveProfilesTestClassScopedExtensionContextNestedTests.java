@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.TestInstantiationAwareExtension.ExtensionContextScope;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -29,8 +30,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringExtensionConfig;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.junit.jupiter.nested.ActiveProfilesNestedTests.Config1;
+import org.springframework.test.context.junit.jupiter.nested.ActiveProfilesTestClassScopedExtensionContextNestedTests.Config1;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.INHERIT;
@@ -39,15 +41,17 @@ import static org.springframework.test.context.NestedTestConfiguration.Enclosing
 /**
  * Integration tests that verify support for {@code @Nested} test classes using
  * {@link ActiveProfiles @ActiveProfiles} in conjunction with the
- * {@link SpringExtension} in a JUnit Jupiter environment.
+ * {@link SpringExtension} in a JUnit Jupiter environment with test class
+ * {@link ExtensionContextScope}.
  *
  * @author Sam Brannen
  * @since 5.3
  */
 @SpringJUnitConfig(Config1.class)
+@SpringExtensionConfig(useTestClassScopedExtensionContext = true)
 @ActiveProfiles("1")
 @NestedTestConfiguration(OVERRIDE) // since INHERIT is now the global default
-class ActiveProfilesNestedTests {
+class ActiveProfilesTestClassScopedExtensionContextNestedTests {
 
 	@Autowired
 	List<String> strings;
@@ -69,8 +73,9 @@ class ActiveProfilesNestedTests {
 
 		@Test
 		void test() {
-			assertThat(strings).containsExactlyInAnyOrder("X", "A1");
-			assertThat(this.localStrings).containsExactlyInAnyOrder("X", "A1");
+			assertThat(strings)
+					.isEqualTo(this.localStrings)
+					.containsExactlyInAnyOrder("X", "A1");
 		}
 	}
 
@@ -155,7 +160,6 @@ class ActiveProfilesNestedTests {
 				}
 			}
 		}
-
 	}
 
 	// -------------------------------------------------------------------------

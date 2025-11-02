@@ -18,6 +18,7 @@ package org.springframework.test.context.junit.jupiter.nested;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.TestInstantiationAwareExtension.ExtensionContextScope;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +26,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringExtensionConfig;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.junit.jupiter.nested.TestPropertySourceNestedTests.Config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.INHERIT;
@@ -35,15 +36,17 @@ import static org.springframework.test.context.NestedTestConfiguration.Enclosing
 /**
  * Integration tests that verify support for {@code @Nested} test classes using
  * {@link TestPropertySource @TestPropertySource} in conjunction with the
- * {@link SpringExtension} in a JUnit Jupiter environment.
+ * {@link SpringExtension} in a JUnit Jupiter environment with test class
+ * {@link ExtensionContextScope}.
  *
  * @author Sam Brannen
  * @since 5.3
  */
-@SpringJUnitConfig(Config.class)
+@SpringJUnitConfig
+@SpringExtensionConfig(useTestClassScopedExtensionContext = true)
 @TestPropertySource(properties = "p1 = v1")
 @NestedTestConfiguration(OVERRIDE) // since INHERIT is now the global default
-class TestPropertySourceNestedTests {
+class TestPropertySourceTestClassScopedExtensionContextNestedTests {
 
 	@Autowired
 	Environment env1;
@@ -57,7 +60,7 @@ class TestPropertySourceNestedTests {
 
 	@Nested
 	@NestedTestConfiguration(INHERIT)
-	class InheritedConfigTests {
+	class InheritedCfgTests {
 
 		@Autowired
 		Environment env2;
@@ -93,7 +96,7 @@ class TestPropertySourceNestedTests {
 	@NestedTestConfiguration(INHERIT)
 	@TestPropertySource(properties = "p2a = v2a")
 	@TestPropertySource(properties = "p2b = v2b")
-	class InheritedAndExtendedConfigTests {
+	class InheritedAndExtendedCfgTests {
 
 		@Autowired
 		Environment env2;
@@ -113,7 +116,7 @@ class TestPropertySourceNestedTests {
 		@NestedTestConfiguration(OVERRIDE)
 		@SpringJUnitConfig(Config.class)
 		@TestPropertySource(properties = "p3 = v3")
-		class L3WithOverriddenConfigTests {
+		class L3OverriddenCfgTests {
 
 			@Autowired
 			Environment env3;
@@ -136,7 +139,7 @@ class TestPropertySourceNestedTests {
 			@Nested
 			@NestedTestConfiguration(INHERIT)
 			@TestPropertySource(properties = {"p3 = v34", "p4 = v4"}, inheritProperties = false)
-			class L4WithInheritedConfigButOverriddenTestPropertiesTests {
+			class L4InheritedCfgButOverriddenTestPropsTests {
 
 				@Autowired
 				Environment env4;
@@ -161,7 +164,7 @@ class TestPropertySourceNestedTests {
 				}
 
 				@Nested
-				class L5WithInheritedConfigAndTestInterfaceTests implements TestInterface {
+				class L5InheritedCfgAndTestInterfaceTests implements TestInterface {
 
 					@Autowired
 					Environment env5;

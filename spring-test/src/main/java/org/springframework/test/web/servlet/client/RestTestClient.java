@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.hamcrest.Matcher;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -515,6 +514,14 @@ public interface RestTestClient {
 
 		/**
 		 * Perform the exchange.
+		 * <p>The returned spec may be used in one of two alternative ways:
+		 * <ul>
+		 * <li>Use methods on the spec to extend the request workflow with a
+		 * chain of response expectations
+		 * <li>Wrap the spec with
+		 * {@link org.springframework.test.web.servlet.client.assertj.RestTestClientResponse#from(ResponseSpec)}
+		 * and verify the response with AssertJ statements
+		 * </ul>
 		 * @return a spec for expectations on the response
 		 */
 		ResponseSpec exchange();
@@ -648,13 +655,24 @@ public interface RestTestClient {
 		BodyContentSpec expectBody();
 
 		/**
-		 * Exit the chained flow in order to consume the response body externally.
+		 * Return an {@link ExchangeResult} with the raw content. Effectively, a shortcut for:
+		 * <pre class="code">
+		 * .returnResult(byte[].class)
+		 * </pre>
+		 */
+		default ExchangeResult returnResult() {
+			return returnResult(byte[].class);
+		}
+
+		/**
+		 * Convert the response content to the given target type, and return an
+		 * {@link ExchangeResult} that represents the exchange.
 		 */
 		<T> EntityExchangeResult<T> returnResult(Class<T> elementClass);
 
 		/**
-		 * Alternative to {@link #returnResult(Class)} that accepts information
-		 * about a target type with generics.
+		 * Alternative to {@link #returnResult(Class)} that allows specifying a
+		 * response body type with generics.
 		 */
 		<T> EntityExchangeResult<T> returnResult(ParameterizedTypeReference<T> elementTypeRef);
 
@@ -682,20 +700,15 @@ public interface RestTestClient {
 		<T extends S> T isEqualTo(@Nullable B expected);
 
 		/**
-		 * Assert the extracted body with a {@link Matcher}.
-		 */
-		<T extends S> T value(Matcher<? super @Nullable B> matcher);
-
-		/**
-		 * Transform the extracted the body with a function, for example, extracting a
-		 * property, and assert the mapped value with a {@link Matcher}.
-		 */
-		<T extends S, R> T value(Function<@Nullable B, @Nullable R> bodyMapper, Matcher<? super @Nullable R> matcher);
-
-		/**
 		 * Assert the extracted body with a {@link Consumer}.
 		 */
 		<T extends S> T value(Consumer<@Nullable B> consumer);
+
+		/**
+		 * Transform the extracted the body with a function, for example, extracting a
+		 * property, and assert the mapped value with a {@link Consumer}.
+		 */
+		<T extends S, R> T value(Function<@Nullable B, @Nullable R> bodyMapper, Consumer<? super @Nullable R> consumer);
 
 		/**
 		 * Assert the exchange result with the given {@link Consumer}.

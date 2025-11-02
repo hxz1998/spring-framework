@@ -28,8 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.hamcrest.Matcher;
-import org.hamcrest.MatcherAssert;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -40,6 +38,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverters;
+import org.springframework.test.http.HttpMessageContentConverter;
 import org.springframework.test.json.JsonAssert;
 import org.springframework.test.json.JsonComparator;
 import org.springframework.test.json.JsonCompareMode;
@@ -69,6 +69,8 @@ class DefaultRestTestClient implements RestTestClient {
 
 	private final DefaultRestTestClientBuilder<?> restTestClientBuilder;
 
+	private final @Nullable HttpMessageContentConverter messageContentConverter;
+
 	private final AtomicLong requestIndex = new AtomicLong();
 
 
@@ -79,6 +81,7 @@ class DefaultRestTestClient implements RestTestClient {
 		this.restClient = builder.requestInterceptor(this.wiretapInterceptor).build();
 		this.entityResultConsumer = entityResultConsumer;
 		this.restTestClientBuilder = restTestClientBuilder;
+		this.messageContentConverter = new ConverterCallback(this.restClient).getConverter();
 	}
 
 
@@ -130,6 +133,27 @@ class DefaultRestTestClient implements RestTestClient {
 	@Override
 	public <B extends Builder<B>> Builder<B> mutate() {
 		return (Builder<B>) this.restTestClientBuilder;
+	}
+
+
+	private static class ConverterCallback {
+
+		private @Nullable HttpMessageContentConverter converter;
+
+		ConverterCallback(RestClient client) {
+			client.mutate()
+					.configureMessageConverters(convertersBuilder -> {
+						HttpMessageConverters converters = convertersBuilder.build();
+						if (converters.iterator().hasNext()) {
+							this.converter = HttpMessageContentConverter.of(converters);
+						}
+					})
+					.build();
+		}
+
+		public @Nullable HttpMessageContentConverter getConverter() {
+			return this.converter;
+		}
 	}
 
 
@@ -265,7 +289,8 @@ class DefaultRestTestClient implements RestTestClient {
 					this.requestHeadersUriSpec.exchangeForRequiredValue(
 							(request, response) -> {
 								byte[] requestBody = wiretapInterceptor.getRequestContent(this.requestId);
-								return new ExchangeResult(request, response, this.uriTemplate, requestBody);
+								return new ExchangeResult(
+										request, response, this.uriTemplate, requestBody, messageContentConverter);
 							}, false),
 					DefaultRestTestClient.this.entityResultConsumer);
 		}
@@ -380,23 +405,17 @@ class DefaultRestTestClient implements RestTestClient {
 		}
 
 		@Override
-		public <T extends S> T value(Matcher<? super @Nullable B> matcher) {
-			this.result.assertWithDiagnostics(() -> MatcherAssert.assertThat(this.result.getResponseBody(), matcher));
-			return self();
-		}
-
-		@Override
-		public <T extends S, R> T value(Function<@Nullable B, @Nullable R> bodyMapper, Matcher<? super @Nullable R> matcher) {
-			this.result.assertWithDiagnostics(() -> {
-				B body = this.result.getResponseBody();
-				MatcherAssert.assertThat(bodyMapper.apply(body), matcher);
-			});
-			return self();
-		}
-
-		@Override
 		public <T extends S> T value(Consumer<@Nullable B> consumer) {
 			this.result.assertWithDiagnostics(() -> consumer.accept(this.result.getResponseBody()));
+			return self();
+		}
+
+		@Override
+		public <T extends S, R> T value(Function<@Nullable B, @Nullable R> bodyMapper, Consumer<? super @Nullable R> consumer) {
+			this.result.assertWithDiagnostics(() -> {
+				B body = this.result.getResponseBody();
+				consumer.accept(bodyMapper.apply(body));
+			});
 			return self();
 		}
 
