@@ -18,6 +18,7 @@ package org.springframework.test.context.junit.jupiter.nested;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.TestInstantiationAwareExtension.ExtensionContextScope;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,7 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.NestedTestConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.junit.jupiter.nested.ContextConfigurationNestedTests.TopLevelConfig;
+import org.springframework.test.context.junit.jupiter.nested.ContextConfigurationTestMethodScopedExtensionContextNestedTests.TopLevelConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.NestedTestConfiguration.EnclosingConfiguration.INHERIT;
@@ -36,22 +37,24 @@ import static org.springframework.test.context.NestedTestConfiguration.Enclosing
 /**
  * Integration tests that verify support for {@code @Nested} test classes using
  * {@link ContextConfiguration @ContextConfiguration} in conjunction with the
- * {@link SpringExtension} in a JUnit Jupiter environment.
+ * {@link SpringExtension} in a JUnit Jupiter environment with
+ * {@link ExtensionContextScope#TEST_METHOD}.
  *
  * @author Sam Brannen
- * @since 5.0
- * @see ConstructorInjectionNestedTests
+ * @since 6.2.13
+ * @see ConstructorInjectionTestClassScopedExtensionContextNestedTests
  * @see org.springframework.test.context.junit4.nested.NestedTestsWithSpringRulesTests
  */
 @SpringJUnitConfig(TopLevelConfig.class)
 @NestedTestConfiguration(OVERRIDE) // since INHERIT is now the global default
-class ContextConfigurationNestedTests {
+class ContextConfigurationTestMethodScopedExtensionContextNestedTests {
 
 	private static final String FOO = "foo";
 	private static final String BAR = "bar";
 	private static final String BAZ = "baz";
 
-	@Autowired
+	@Autowired(required = false)
+	@Qualifier("foo")
 	String foo;
 
 
@@ -75,18 +78,15 @@ class ContextConfigurationNestedTests {
 
 		@Test
 		void test() {
-			// In contrast to nested test classes running in JUnit 4, the foo
-			// field in the outer instance should have been injected from the
-			// test ApplicationContext for the outer instance.
-			assertThat(foo).isEqualTo(FOO);
-			assertThat(this.localFoo).as("foo bean should not be present").isNull();
+			assertThat(foo).as("foo bean should not be present").isNull();
+			assertThat(this.localFoo).as("local foo bean should not be present").isNull();
 			assertThat(this.bar).isEqualTo(BAR);
 		}
 	}
 
 	@Nested
 	@NestedTestConfiguration(INHERIT)
-	class NestedTestCaseWithInheritedConfigTests {
+	class NestedTestsWithInheritedConfigTests {
 
 		@Autowired(required = false)
 		@Qualifier("foo")
@@ -122,11 +122,8 @@ class ContextConfigurationNestedTests {
 
 			@Test
 			void test() {
-				// In contrast to nested test classes running in JUnit 4, the foo
-				// field in the outer instance should have been injected from the
-				// test ApplicationContext for the outer instance.
-				assertThat(foo).isEqualTo(FOO);
-				assertThat(this.localFoo).as("foo bean should not be present").isNull();
+				assertThat(foo).as("foo bean should not be present").isNull();
+				assertThat(this.localFoo).as("local foo bean should not be present").isNull();
 				assertThat(this.bar).isEqualTo(BAR);
 			}
 
@@ -145,8 +142,8 @@ class ContextConfigurationNestedTests {
 
 				@Test
 				void test() {
-					assertThat(foo).isEqualTo(FOO);
-					assertThat(this.localFoo).as("foo bean should not be present").isNull();
+					assertThat(foo).as("foo bean should not be present").isNull();
+					assertThat(this.localFoo).as("local foo bean should not be present").isNull();
 					assertThat(this.bar).isEqualTo(BAR);
 				}
 			}
@@ -160,6 +157,7 @@ class ContextConfigurationNestedTests {
 				String localFoo;
 
 				@Autowired
+				@Qualifier("bar")
 				String bar;
 
 				@Autowired
@@ -168,8 +166,8 @@ class ContextConfigurationNestedTests {
 
 				@Test
 				void test() {
-					assertThat(foo).isEqualTo(FOO);
-					assertThat(this.localFoo).as("foo bean should not be present").isNull();
+					assertThat(foo).as("foo bean should not be present").isNull();
+					assertThat(this.localFoo).as("local foo bean should not be present").isNull();
 					assertThat(this.bar).isEqualTo(BAR);
 					assertThat(this.baz).isEqualTo(BAZ);
 				}

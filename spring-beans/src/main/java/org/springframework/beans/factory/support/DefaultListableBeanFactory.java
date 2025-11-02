@@ -1180,6 +1180,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// 如果是懒加载，那么就先不初始化了，等到用的时候再初始化
 		if (!mbd.isLazyInit()) {
 			try {
 				// 正常默认是走这个路径，不走后台初始化模式

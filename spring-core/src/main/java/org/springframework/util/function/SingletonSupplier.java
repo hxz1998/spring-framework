@@ -47,6 +47,8 @@ public class SingletonSupplier<T extends @Nullable Object> implements Supplier<T
 
 	private volatile @Nullable T singletonInstance;
 
+	private volatile boolean initialized;
+
 	/**
 	 * Guards access to write operations on the {@code singletonInstance} field.
 	 */
@@ -63,6 +65,7 @@ public class SingletonSupplier<T extends @Nullable Object> implements Supplier<T
 		this.instanceSupplier = null;
 		this.defaultSupplier = defaultSupplier;
 		this.singletonInstance = instance;
+		this.initialized = (instance != null);
 	}
 
 	/**
@@ -85,6 +88,7 @@ public class SingletonSupplier<T extends @Nullable Object> implements Supplier<T
 		this.instanceSupplier = null;
 		this.defaultSupplier = null;
 		this.singletonInstance = singletonInstance;
+		this.initialized = (singletonInstance != null);
 	}
 
 
@@ -95,11 +99,11 @@ public class SingletonSupplier<T extends @Nullable Object> implements Supplier<T
 	@Override
 	public @Nullable T get() {
 		T instance = this.singletonInstance;
-		if (instance == null) {
+		if (!this.initialized) {
 			this.writeLock.lock();
 			try {
 				instance = this.singletonInstance;
-				if (instance == null) {
+				if (!this.initialized) {
 					if (this.instanceSupplier != null) {
 						instance = this.instanceSupplier.get();
 					}
@@ -107,6 +111,7 @@ public class SingletonSupplier<T extends @Nullable Object> implements Supplier<T
 						instance = this.defaultSupplier.get();
 					}
 					this.singletonInstance = instance;
+					this.initialized = true;
 				}
 			}
 			finally {

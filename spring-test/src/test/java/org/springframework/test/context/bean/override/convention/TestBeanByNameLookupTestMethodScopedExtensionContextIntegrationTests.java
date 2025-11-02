@@ -19,35 +19,31 @@ package org.springframework.test.context.bean.override.convention;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.TestInstantiationAwareExtension.ExtensionContextScope;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration tests for {@link TestBean} that use by-name lookup.
+ * Integration tests for {@link TestBean} that use by-name lookup with
+ * {@link ExtensionContextScope#TEST_METHOD}.
  *
  * @author Simon Baslé
  * @author Sam Brannen
- * @since 6.2
+ * @since 6.2.13
  */
 @SpringJUnitConfig
-public class TestBeanByNameLookupIntegrationTests {
+public class TestBeanByNameLookupTestMethodScopedExtensionContextIntegrationTests {
 
 	@TestBean(name = "field")
 	String field;
 
 	@TestBean(name = "methodRenamed1", methodName = "field")
 	String methodRenamed1;
-
-	@TestBean("prototypeScoped")
-	String prototypeScoped;
-
 
 	static String field() {
 		return "fieldOverride";
@@ -56,11 +52,6 @@ public class TestBeanByNameLookupIntegrationTests {
 	static String nestedField() {
 		return "nestedFieldOverride";
 	}
-
-	static String prototypeScoped() {
-		return "prototypeScopedOverride";
-	}
-
 
 	@Test
 	void fieldHasOverride(ApplicationContext ctx) {
@@ -72,13 +63,6 @@ public class TestBeanByNameLookupIntegrationTests {
 	void fieldWithMethodNameHasOverride(ApplicationContext ctx) {
 		assertThat(ctx.getBean("methodRenamed1")).as("applicationContext").isEqualTo("fieldOverride");
 		assertThat(methodRenamed1).as("injection point").isEqualTo("fieldOverride");
-	}
-
-	@Test
-	void fieldForPrototypeHasOverride(ConfigurableApplicationContext ctx) {
-		assertThat(ctx.getBeanFactory().getBeanDefinition("prototypeScoped").isSingleton()).as("isSingleton").isTrue();
-		assertThat(ctx.getBean("prototypeScoped")).as("applicationContext").isEqualTo("prototypeScopedOverride");
-		assertThat(prototypeScoped).as("injection point").isEqualTo("prototypeScopedOverride");
 	}
 
 
@@ -175,7 +159,6 @@ public class TestBeanByNameLookupIntegrationTests {
 		}
 	}
 
-
 	@Configuration(proxyBeanMethods = false)
 	static class Config {
 
@@ -197,12 +180,6 @@ public class TestBeanByNameLookupIntegrationTests {
 		@Bean("methodRenamed2")
 		String bean4() {
 			return "NestedProd";
-		}
-
-		@Bean("prototypeScoped")
-		@Scope("prototype")
-		String bean5() {
-			return "PrototypeProd";
 		}
 	}
 
