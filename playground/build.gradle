@@ -11,7 +11,7 @@ dependencies {
     api(project(":spring-beans"))
     api(project(":spring-core"))
     api(project(":spring-aop"))
-    implementation("org.aspectj:aspectjweaver")
+    api(project(":spring-aspects"))
 	testImplementation(platform("org.junit:junit-bom:5.10.0"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
