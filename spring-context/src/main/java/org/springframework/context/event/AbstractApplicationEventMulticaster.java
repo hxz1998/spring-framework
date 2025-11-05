@@ -483,6 +483,7 @@ public abstract class AbstractApplicationEventMulticaster
 				}
 			}
 			if (!applicationListenerBeans.isEmpty()) {
+				// 在获取Listeners的时候，会尝试进行排序
 				AnnotationAwareOrderComparator.sort(allListeners);
 			}
 			return allListeners;
